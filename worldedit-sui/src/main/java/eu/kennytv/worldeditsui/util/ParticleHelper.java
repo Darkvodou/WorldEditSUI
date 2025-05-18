@@ -37,7 +37,7 @@ public final class ParticleHelper {
         if (player.getLocation().distanceSquared(location) > particle.radiusSquared()) return;
 
         player.spawnParticle(particle.getParticle(), location, 1,
-                particle.offX(), particle.offY(), particle.offZ(), particle.speed(), particle.getData());
+                particle.offX(), particle.offY(), particle.offZ(), particle.speed(), particle.getData(), true);
     }
 
     public void playEffectToAll(final ParticleData particle, final ParticleData othersParticle, final Location location, final Player origin) {
@@ -50,7 +50,7 @@ public final class ParticleHelper {
 
             final ParticleData toSend = originalPlayer ? particle : othersParticle;
             player.spawnParticle(toSend.getParticle(), location, 1,
-                    particle.offX(), particle.offY(), particle.offZ(), particle.speed(), toSend.getData());
+                    particle.offX(), particle.offY(), particle.offZ(), particle.speed(), toSend.getData(), true);
         }
     }
 
