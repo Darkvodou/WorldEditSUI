@@ -21,40 +21,57 @@ package eu.kennytv.worldeditsui.util;
 import eu.kennytv.worldeditsui.Settings;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 
 public final class ParticleHelper {
 
     private final Settings settings;
+    private boolean hasForceParameter = false;
 
     public ParticleHelper(final Settings settings) {
         this.settings = settings;
+        this.hasForceParameter = checkMethodAvailability();
     }
 
     public void playEffect(final ParticleData particle, final Location location, final Player player) {
         if (!location.getWorld().equals(player.getWorld())) return;
 
         if (player.getLocation().distanceSquared(location) > particle.radiusSquared()) return;
-
-        player.spawnParticle(particle.getParticle(), location, 1,
-                particle.offX(), particle.offY(), particle.offZ(), particle.speed(), particle.getData(), true);
+        if (hasForceParameter) {
+            player.spawnParticle(particle.getParticle(), location, 1, particle.offX(), particle.offY(), particle.offZ(), particle.speed(), particle.getData(), true);
+        } else {
+            player.spawnParticle(particle.getParticle(), location, 1, particle.offX(), particle.offY(), particle.offZ(), particle.speed());
+        }
     }
 
     public void playEffectToAll(final ParticleData particle, final ParticleData othersParticle, final Location location, final Player origin) {
         for (final Player player : Bukkit.getOnlinePlayers()) {
-            if (!location.getWorld().equals(player.getWorld())
-                    || player.getLocation().distanceSquared(location) > particle.radiusSquared()) continue;
+            if (!location.getWorld().equals(player.getWorld()) || player.getLocation().distanceSquared(location) > particle.radiusSquared()) continue;
 
             final boolean originalPlayer = player.getUniqueId().equals(origin.getUniqueId());
             if (!originalPlayer && !canSeeOtherParticles(player)) continue;
 
             final ParticleData toSend = originalPlayer ? particle : othersParticle;
-            player.spawnParticle(toSend.getParticle(), location, 1,
-                    particle.offX(), particle.offY(), particle.offZ(), particle.speed(), toSend.getData(), true);
+            if (hasForceParameter) {
+                player.spawnParticle(toSend.getParticle(), location, 1, particle.offX(), particle.offY(), particle.offZ(), particle.speed(), toSend.getData(), true);
+            } else {
+                player.spawnParticle(toSend.getParticle(), location, 1, particle.offX(), particle.offY(), particle.offZ(), particle.speed(), toSend.getData());
+            }
         }
     }
 
     private boolean canSeeOtherParticles(final Player player) {
         return settings.getOtherParticlesPermission() == null || player.hasPermission(settings.getOtherParticlesPermission());
+    }
+
+    public boolean checkMethodAvailability() {
+        try {
+            Player.class.getMethod("spawnParticle", Particle.class, double.class, double.class, double.class, int.class, double.class, double.class, double.class, double.class, Object.class, boolean.class);
+
+            return true;
+        } catch (NoSuchMethodException e) {
+            return false;
+        }
     }
 }
